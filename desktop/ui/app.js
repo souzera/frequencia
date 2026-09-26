@@ -15,7 +15,8 @@ function buildTracks() {
   for (const track of state.tracks) {
     const row = document.createElement('div'); row.className = 'track'; row.dataset.id = track.id;
     const check = document.createElement('input'); check.type = 'checkbox'; check.checked = selected.has(track.id); check.setAttribute('aria-label', 'Selecionar ' + track.title); check.onchange = () => { check.checked ? selected.add(track.id) : selected.delete(track.id); updateSelection(); };
-    const icon = document.createElement('span'); icon.className = 'track-icon'; icon.textContent = '♪'; icon.setAttribute('aria-hidden', 'true');
+    const icon = document.createElement(track.cover_url ? 'img' : 'span'); icon.className = 'track-icon';
+    if (track.cover_url) { icon.src = track.cover_url; icon.alt = ''; } else { icon.textContent = '♪'; icon.setAttribute('aria-hidden', 'true'); }
     const text = document.createElement('div'); text.className = 'track-text';
     const title = document.createElement('span'); title.className = 'track-title'; title.textContent = track.title; title.title = track.title;
     const artist = document.createElement('span'); artist.className = 'track-artist'; artist.textContent = track.artist;
