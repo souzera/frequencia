@@ -65,3 +65,39 @@ window.addEventListener('pywebviewready', async () => {
   refresh();
 });
 $('inspect').disabled = true;
+(function () {
+  const lights = document.querySelector('.traffic-lights');
+  lights.addEventListener('mousedown', e => e.stopPropagation());
+  $('tl-close').onclick = () => api && call('window_close');
+  $('tl-minimize').onclick = () => api && call('window_minimize');
+  $('tl-maximize').onclick = () => api && call('window_toggle_maximize');
+  $('titlebar').addEventListener('dblclick', e => { if (!e.target.closest('.traffic-lights') && api) call('window_toggle_maximize'); });
+
+  const MIN_W = 860, MIN_H = 640;
+  let raf = null, pending = null;
+  function sendResize(width, height, fixPoint) {
+    pending = { width, height, fixPoint };
+    if (raf) return;
+    raf = requestAnimationFrame(() => { raf = null; if (api && pending) api.window_resize(pending.width, pending.height, pending.fixPoint); });
+  }
+  function startResize(dirs) {
+    return e => {
+      e.preventDefault();
+      const startX = e.screenX, startY = e.screenY;
+      const startW = document.documentElement.clientWidth, startH = document.documentElement.clientHeight;
+      function onMove(ev) {
+        const dx = ev.screenX - startX, dy = ev.screenY - startY;
+        let width = startW, height = startH, fix = 0;
+        if (dirs.includes('e')) width = startW + dx;
+        if (dirs.includes('w')) { width = startW - dx; fix |= 4; }
+        if (dirs.includes('s')) height = startH + dy;
+        if (dirs.includes('n')) { height = startH - dy; fix |= 8; }
+        sendResize(Math.max(MIN_W, width), Math.max(MIN_H, height), fix);
+      }
+      function onUp() { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); }
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+    };
+  }
+  document.querySelectorAll('.resize-handle').forEach(handle => handle.addEventListener('mousedown', startResize(handle.dataset.edges)));
+})();

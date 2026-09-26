@@ -7,6 +7,21 @@
   <title>Frequência</title><link rel="icon" href="assets/frequencia.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header id="titlebar" class="titlebar pywebview-drag-region">
+    <div class="traffic-lights">
+      <button id="tl-close" class="tl-btn tl-close" type="button" aria-label="Fechar"></button>
+      <button id="tl-minimize" class="tl-btn tl-minimize" type="button" aria-label="Minimizar"></button>
+      <button id="tl-maximize" class="tl-btn tl-maximize" type="button" aria-label="Maximizar"></button>
+    </div>
+  </header>
+  <div class="resize-handle rz-n" data-edges="n"></div>
+  <div class="resize-handle rz-s" data-edges="s"></div>
+  <div class="resize-handle rz-w" data-edges="w"></div>
+  <div class="resize-handle rz-e" data-edges="e"></div>
+  <div class="resize-handle rz-corner rz-nw" data-edges="nw"></div>
+  <div class="resize-handle rz-corner rz-ne" data-edges="ne"></div>
+  <div class="resize-handle rz-corner rz-sw" data-edges="sw"></div>
+  <div class="resize-handle rz-corner rz-se" data-edges="se"></div>
   <aside class="sidebar">
     <a class="brand" href="#downloads" aria-label="Frequência, início"><img class="brand-icon" src="assets/frequencia.svg" width="32" height="32" alt="">frequência<span class="brand-dot">.</span></a>
     <div class="nav-label">SUA BIBLIOTECA, OFFLINE</div>
@@ -23,7 +38,7 @@
       <form id="link-form" class="input-card">
         <label for="url">De onde vem o som?</label>
         <div class="input-row"><span class="link-icon" aria-hidden="true">↗</span><input id="url" type="url" required placeholder="Cole um link do YouTube ou Spotify" autocomplete="off" spellcheck="false"><button id="inspect" class="primary" type="submit">Conferir link <span>→</span></button></div>
-        <div class="input-foot"><div class="providers"><span><i class="youtube">▶</i> YouTube</span><span><i class="spotify">≋</i> Spotify</span><span class="muted">Músicas e playlists</span></div><span id="link-type"></span></div>
+        <div class="input-foot"><div class="providers"><span><img src="assets/youtube.svg" width="16" height="12" alt=""> YouTube</span><span><img src="assets/spotify.svg" width="14" height="14" alt=""> Spotify</span><span class="muted">Músicas e playlists</span></div><span id="link-type"></span></div>
         <label id="playlist-choice" class="playlist-choice" hidden><input id="include-playlist" type="checkbox"> Este vídeo faz parte de uma playlist. Carregar a playlist inteira.</label>
       </form>
       <div id="notice" role="status" aria-live="polite" hidden></div>

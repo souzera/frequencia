@@ -12,7 +12,8 @@ def main():
     api = DesktopAPI()
     window = webview.create_window('Frequência', str(ROOT / 'desktop' / 'ui' / 'index.html'),
                                    js_api=api, width=1180, height=800, min_size=(860, 640),
-                                   background_color='#F7F8FA', text_select=True)
+                                   background_color='#F7F8FA', text_select=True,
+                                   frameless=True, easy_drag=False)
     api._window = window
     window.events.closing += lambda: api.cancel() and None
     webview.start(gui='edgechromium' if sys.platform == 'win32' else None,

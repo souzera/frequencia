@@ -20,6 +20,7 @@ class DesktopAPI:
         self._process = None
         self._cancelled = False
         self._window = None
+        self._maximized = False
         self._state = {'phase': 'idle', 'tracks': [], 'title': '', 'error': None}
 
     def get_state(self):
@@ -187,6 +188,22 @@ class DesktopAPI:
             return {'ok': True, 'settings': value}
         except (ValueError, OSError) as exc:
             return {'ok': False, 'error': str(exc)}
+
+    def window_minimize(self):
+        self._window.minimize()
+
+    def window_toggle_maximize(self):
+        self._maximized = not self._maximized
+        self._window.maximize() if self._maximized else self._window.restore()
+
+    def window_close(self):
+        self._window.destroy()
+
+    def window_resize(self, width, height, fix_point):
+        import webview
+        width = max(860, int(width))
+        height = max(640, int(height))
+        self._window.resize(width, height, webview.FixPoint(int(fix_point)))
 
     def open_directory(self):
         try:
