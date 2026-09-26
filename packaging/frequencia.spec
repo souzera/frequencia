@@ -14,7 +14,7 @@ if not (vendor / 'licenses').is_dir():
 datas = [(str(root / 'desktop' / 'ui'), 'desktop/ui'), (str(vendor / 'licenses'), 'licenses')]
 binaries = [(str(vendor / name), 'vendor') for name in required]
 hiddenimports = []
-for package in ['yt_dlp', 'yt_dlp_ejs', 'spotdl', 'SpotipyFree', 'spotapi']:
+for package in ['yt_dlp', 'yt_dlp_ejs', 'spotdl', 'SpotipyFree', 'spotapi', 'pykakasi']:
     data, binary, hidden = collect_all(package)
     datas += data
     binaries += binary
