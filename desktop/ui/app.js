@@ -4,7 +4,8 @@ let api, state, selected = new Set(), signature = '', busy = false, classifyVers
 const phases = new Set(['inspecting', 'downloading', 'cancelling']);
 function notice(message, error = false) { $('notice').textContent = message || ''; $('notice').hidden = !message; $('notice').className = error ? 'error' : ''; }
 async function call(method, ...args) { try { const result = await api[method](...args); if (result?.ok === false) notice(result.error, true); return result; } catch (e) { notice('Não foi possível concluir a operação. ' + e.message, true); return null; } }
-function navigate(page) { for (const name of ['downloads', 'settings']) $(name).hidden = name !== page; document.querySelectorAll('.nav').forEach(b => b.classList.toggle('active', b.dataset.page === page)); $('breadcrumb').textContent = page === 'settings' ? 'Biblioteca / Configurações' : 'Biblioteca / Downloads'; }
+const breadcrumbs = { downloads: 'Biblioteca / Downloads', settings: 'Biblioteca / Configurações', about: 'Biblioteca / Nota técnica' };
+function navigate(page) { for (const name of ['downloads', 'settings', 'about']) $(name).hidden = name !== page; document.querySelectorAll('.nav').forEach(b => b.classList.toggle('active', b.dataset.page === page)); $('breadcrumb').textContent = breadcrumbs[page]; }
 document.querySelectorAll('.nav').forEach(b => b.onclick = () => navigate(b.dataset.page));
 document.querySelector('.brand').onclick = e => { e.preventDefault(); navigate('downloads'); };
 function duration(n) { return Number.isFinite(n) ? `${Math.floor(n / 60)}:${String(Math.floor(n % 60)).padStart(2, '0')}` : '—'; }

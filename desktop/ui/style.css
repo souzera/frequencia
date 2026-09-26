@@ -19,4 +19,6 @@
 .rz-ne{top:0;right:0;cursor:nesw-resize}
 .rz-sw{bottom:0;left:0;cursor:nesw-resize}
 .rz-se{bottom:0;right:0;cursor:nwse-resize}
+#about .settings-card p{margin-bottom:10px}#about .settings-card p:last-child{margin-bottom:0}
+#about code{background:#f0f2f6;padding:1px 5px;border-radius:4px}
 

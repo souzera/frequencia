@@ -28,6 +28,7 @@
     <nav aria-label="Navegação principal">
       <button class="nav active" data-page="downloads"><span>↓</span> Downloads <span class="nav-dot"></span></button>
       <button class="nav" data-page="settings"><span>⚙</span> Configurações</button>
+      <button class="nav" data-page="about"><span>ⓘ</span> Nota técnica</button>
     </nav>
     <div class="sidebar-bottom"><div class="small-mark">♫</div><strong>Do link ao play.</strong><p>Suas músicas em MP3,<br>no seu computador.</p><span class="version">DESKTOP / 1.0</span></div>
   </aside>
@@ -61,6 +62,14 @@
         <div class="settings-card"><h2>Componentes de áudio</h2><p>Incluídos na versão instalada. Nenhuma variável de ambiente necessária.</p><div id="dependencies" class="dependencies"></div></div>
         <div class="settings-actions"><span id="settings-message" role="status"></span><button class="primary" type="submit">Salvar configurações</button></div>
       </form>
+    </section>
+    <section id="about" class="page" hidden>
+      <div class="page-heading"><div><div class="eyebrow">POR BAIXO DO CAPÔ</div><h1>Nota técnica</h1><p>Como o Frequência funciona, em termos técnicos.</p></div></div>
+      <div class="settings-card"><h2>Arquitetura</h2><p>Aplicativo Python empacotado com PyInstaller, com interface local renderizada via WebView2 (pywebview). Não há servidor remoto: interface, lógica e processamento rodam inteiramente na sua máquina.</p><p>Download e conversão rodam num processo separado (worker), isolado da janela. Isso permite cancelar uma operação em andamento sem travar a interface, e evita que uma falha do FFmpeg derrube o aplicativo inteiro.</p></div>
+      <div class="settings-card"><h2>Como identificamos o link</h2><p>A classificação é local: conferimos domínio, caminho e parâmetros com <code>urllib.parse</code>, sem scraping nem uma chamada de rede só para saber que tipo de link é. Reconhecemos faixa/playlist do Spotify e vídeo/playlist do YouTube, incluindo <code>youtu.be</code>, <code>/shorts/</code>, <code>/live/</code>, <code>/embed/</code> e Music.</p></div>
+      <div class="settings-card"><h2>Como o Spotify funciona aqui</h2><p>O Spotify fornece apenas metadados (nome, artista, duração) — não distribui o arquivo de áudio para terceiros. O áudio de cada faixa é buscado e baixado do YouTube com yt-dlp; comparamos até cinco candidatos por título, artista e duração e escolhemos o mais parecido.</p><p>Essa correspondência é heurística: pode encontrar uma versão diferente (ao vivo, remix, cover) quando a faixa original não está disponível no YouTube.</p></div>
+      <div class="settings-card"><h2>Metadados e capa</h2><p>Faixas vindas do Spotify são salvas como <code>Artista - Música.mp3</code>, com título, artista, álbum, número da faixa e capa do álbum gravados nas tags ID3 — usando os dados reais do Spotify, não o título do vídeo do YouTube usado como fonte de áudio.</p><p>Faixas baixadas direto de um link do YouTube mantêm o nome do vídeo e não recebem essas tags extras: o YouTube não tem um campo confiável de "artista", só o título do vídeo e o canal, que nem sempre correspondem à faixa real.</p></div>
+      <div class="settings-card"><h2>Privacidade</h2><p>Sem telemetria, conta ou login. As únicas chamadas de rede são para os provedores (Spotify e YouTube) necessárias para consultar e baixar o que você pediu. Preferências ficam em <code>%LOCALAPPDATA%\Frequencia</code>.</p></div>
     </section>
   </main>
   <script src="app.js"></script>
