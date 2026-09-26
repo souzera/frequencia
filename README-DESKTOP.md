@@ -1,6 +1,6 @@
 # Frequência — MP3 no desktop
 
-Aplicativo Python + **pywebview** para Windows, com tema claro, **Cascadia Code incluída**, seleção de músicas e processamento por **yt-dlp + FFmpeg**. O protótipo Flask continua separado em `app.py`; a documentação anterior está em `README-WEB.md` e `README-CLI.md`.
+Aplicativo Python + **pywebview** para Windows, com tema claro, **Cascadia Code incluída**, seleção de músicas e processamento por **yt-dlp + FFmpeg**.
 
 ## Executar
 
@@ -96,7 +96,6 @@ Chamadas de rede e conversão não executam na thread da janela. A UI consulta s
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
-.\.venv\Scripts\python.exe -m unittest test_media -v
 .\.venv\Scripts\python.exe tests/smoke_window.py
 ```
 
@@ -104,7 +103,7 @@ A suíte desktop cobre as quatro categorias e variantes, URLs ambíguas/inválid
 
 O teste opcional `smoke_window.py` abre uma janela WebView2 temporária e verifica inicialização da ponte Python, carregamento da fonte, ausência de rolagem horizontal e navegação para Configurações.
 
-`tests/smoke_frozen.py` verifica o worker empacotado, a fonte e os executáveis embarcados sem rede. `tests/smoke_providers.py` é uma consulta opcional à Internet, apenas de metadados públicos; não baixa áudio. Os relatórios ficam em `build/`. Na verificação desta entrega, os quatro tipos foram consultados com sucesso: vídeo YouTube (Big Buck Bunny), playlist YouTube, faixa Spotify (Blinding Lights) e playlist Spotify com 50 faixas. A conversão para MP3 foi validada com áudio original gerado localmente. Passaram 18 testes desktop, 8 testes do protótipo web e o teste da janela real com WebView2. A geração de instalador requer Inno Setup; o compilador não estava disponível nesta máquina.
+`tests/smoke_frozen.py` verifica o worker empacotado, a fonte e os executáveis embarcados sem rede. `tests/smoke_providers.py` é uma consulta opcional à Internet, apenas de metadados públicos; não baixa áudio. Os relatórios ficam em `build/`. Na verificação desta entrega, os quatro tipos foram consultados com sucesso: vídeo YouTube (Big Buck Bunny), playlist YouTube, faixa Spotify (Blinding Lights) e playlist Spotify com 50 faixas. A conversão para MP3 foi validada com áudio original gerado localmente. Passaram 18 testes desktop e o teste da janela real com WebView2. A geração de instalador requer Inno Setup; o compilador não estava disponível nesta máquina.
 
 ## Referências
 

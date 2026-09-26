@@ -1,9 +1,0 @@
-.venv
-.git
-work
-__pycache__
-*.mp3
-*.mp4
-*.part
-*.log
-.env
