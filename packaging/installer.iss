@@ -1,13 +1,18 @@
 ; Compile after PyInstaller: ISCC.exe packaging\installer.iss
+; Override the version without editing this file: ISCC.exe /DMyAppVersion=1.2.3 packaging\installer.iss
+#ifndef MyAppVersion
+  #define MyAppVersion "1.0.0"
+#endif
+
 [Setup]
 AppId={{E084CB81-0F67-4C72-902E-5E629A3EAB5B}
 AppName=Frequência
-AppVersion=1.0.0
+AppVersion={#MyAppVersion}
 DefaultDirName={localappdata}\Programs\Frequencia
 DefaultGroupName=Frequência
 PrivilegesRequired=lowest
 OutputDir=..\dist\installer
-OutputBaseFilename=Frequencia-Setup-1.0.0
+OutputBaseFilename=Frequencia-Setup-{#MyAppVersion}
 Compression=lzma2
 SolidCompression=yes
 ArchitecturesAllowed=x64compatible

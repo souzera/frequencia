@@ -1,0 +1,96 @@
+name: Release Windows installer
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Installer version (e.g. 1.0.1)"
+        required: true
+        default: "1.0.0"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      NODE_VERSION: "20.17.0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $version = "${{ github.event.inputs.version }}"
+          } else {
+            $version = "${{ github.ref_name }}".TrimStart("v")
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-build.txt
+
+      - name: Fetch FFmpeg and FFprobe (gyan.dev Windows x64 essentials build)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path vendor, vendor/licenses | Out-Null
+          Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip" -OutFile ffmpeg.zip
+          Expand-Archive ffmpeg.zip -DestinationPath ffmpeg-extract
+          $ffmpegExe = Get-ChildItem -Path ffmpeg-extract -Recurse -Filter "ffmpeg.exe" | Select-Object -First 1
+          $binDir = $ffmpegExe.DirectoryName
+          $pkgRoot = Split-Path $binDir
+          Copy-Item (Join-Path $binDir "ffmpeg.exe") vendor/ffmpeg.exe
+          Copy-Item (Join-Path $binDir "ffprobe.exe") vendor/ffprobe.exe
+          Get-ChildItem -Path $pkgRoot -Filter "LICENSE*" | Select-Object -First 1 | ForEach-Object { Copy-Item $_.FullName "vendor/licenses/FFmpeg-LICENSE.txt" }
+          Get-ChildItem -Path $pkgRoot -Filter "README*" | Select-Object -First 1 | ForEach-Object { Copy-Item $_.FullName "vendor/licenses/FFmpeg-README.txt" }
+
+      - name: Fetch Node.js runtime (official Windows x64 build)
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://nodejs.org/dist/v$env:NODE_VERSION/win-x64/node.exe" -OutFile vendor/node.exe
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/nodejs/node/v$env:NODE_VERSION/LICENSE" -OutFile vendor/licenses/Node-LICENSE.txt
+
+      - name: Verify vendor payload
+        shell: pwsh
+        run: |
+          foreach ($f in "vendor/ffmpeg.exe","vendor/ffprobe.exe","vendor/node.exe") {
+            if (-not (Test-Path $f)) { throw "Missing $f" }
+          }
+
+      - name: Build application (PyInstaller)
+        run: python -m PyInstaller packaging/frequencia.spec --noconfirm
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DMyAppVersion=${{ steps.version.outputs.version }}" packaging/installer.iss
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Frequencia-Setup-${{ steps.version.outputs.version }}
+          path: dist/installer/Frequencia-Setup-*.exe
+
+      - name: Upload installer to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/installer/Frequencia-Setup-*.exe
+          generate_release_notes: true
