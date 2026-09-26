@@ -5,6 +5,8 @@ import sys
 import time
 import re
 import unicodedata
+import urllib.request
+from urllib.error import URLError
 
 from desktop.links import classify
 
@@ -50,6 +52,55 @@ def choose_match(track, candidates):
     return max(ranked, key=lambda entry: entry[0])[1]
 
 
+INVALID_FILENAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+
+
+def sanitize_filename_part(text):
+    cleaned = INVALID_FILENAME_CHARS.sub('', text or '').strip(' .')
+    return cleaned[:120] or 'Sem título'
+
+
+def unique_path(path):
+    if not path.exists():
+        return path
+    stem, suffix, counter = path.stem, path.suffix, 2
+    while True:
+        candidate = path.with_name(f'{stem} ({counter}){suffix}')
+        if not candidate.exists():
+            return candidate
+        counter += 1
+
+
+def apply_spotify_metadata(file, track):
+    """Tag with Spotify's own metadata (not the matched YouTube video's) and rename to 'Artista - Título'."""
+    from mutagen.easyid3 import EasyID3
+    from mutagen.id3 import ID3, APIC, ID3NoHeaderError
+    try:
+        tags = EasyID3(file)
+    except ID3NoHeaderError:
+        tags = EasyID3()
+    tags['title'], tags['artist'] = track['title'], track['artist']
+    if track.get('album'):
+        tags['album'] = track['album']
+    if track.get('track_number'):
+        tags['tracknumber'] = str(track['track_number'])
+    tags.save(file)
+    if track.get('cover_url'):
+        try:
+            with urllib.request.urlopen(track['cover_url'], timeout=15) as response:
+                image, mime = response.read(), response.headers.get_content_type() or 'image/jpeg'
+            cover = ID3(file)
+            cover.add(APIC(encoding=3, mime=mime, type=3, desc='Cover', data=image))
+            cover.save(file)
+        except (URLError, OSError, ValueError):
+            pass  # cover art is best-effort; the track is already downloaded and tagged
+    name = f"{sanitize_filename_part(track['artist'])} - {sanitize_filename_part(track['title'])}{file.suffix}"
+    target = file if file.name == name else unique_path(file.with_name(name))
+    if target != file:
+        file.replace(target)
+    return target
+
+
 def inspect(request):
     link = classify(request['url'], request.get('playlist', False))
     tracks = []
@@ -84,9 +135,13 @@ def inspect(request):
                 continue
             if canonical.source != 'spotify' or canonical.kind != 'single':
                 continue
+            album = song.get('album') or {}
+            images = album.get('images') or []
             tracks.append({'title': song['name'], 'artist': ', '.join(artists),
                            'duration': (song.get('duration_ms') or 0) / 1000, 'url': canonical.url,
-                           'query': f'{song["name"]} {" ".join(artists)} official audio', 'source': 'spotify'})
+                           'query': f'{song["name"]} {" ".join(artists)} official audio', 'source': 'spotify',
+                           'album': album.get('name'), 'track_number': song.get('track_number'),
+                           'cover_url': images[0]['url'] if images else None})
         if link.kind == 'single' and tracks:
             title = tracks[0]['title']
     else:
@@ -120,8 +175,6 @@ def inspect(request):
 
 def download(request):
     from yt_dlp import YoutubeDL
-    from mutagen.easyid3 import EasyID3
-    from mutagen.id3 import ID3NoHeaderError
     destination = Path(request['settings']['directory'])
     destination.mkdir(parents=True, exist_ok=True)
     total = len(request['tracks'])
@@ -161,12 +214,7 @@ def download(request):
             if not file.is_file() or file.stat().st_size == 0:
                 raise ValueError('O conversor não gerou o arquivo MP3.')
             if track['source'] == 'spotify':
-                try:
-                    tags = EasyID3(file)
-                except ID3NoHeaderError:
-                    tags = EasyID3()
-                tags['title'], tags['artist'] = track['title'], track['artist']
-                tags.save(file)
+                file = apply_spotify_metadata(file, track)
             emit('track', id=track['id'], status='done', percent=100, file=str(file))
         except Exception as exc:
             emit('track', id=track['id'], status='error', error=str(exc)[-700:])

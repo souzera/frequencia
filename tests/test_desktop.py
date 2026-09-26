@@ -209,6 +209,48 @@ class ConversionIntegrationTests(unittest.TestCase):
             result = subprocess.run([deps['ffprobe'], '-v', 'error', '-show_entries', 'stream=codec_name', '-of', 'json', str(output)], capture_output=True, text=True, check=True)
             self.assertEqual(json.loads(result.stdout)['streams'][0]['codec_name'], 'mp3')
 
+    def test_spotify_metadata_tags_cover_and_renames_file(self):
+        deps = binaries()
+        if not deps['ffmpeg'] or not deps['ffprobe']:
+            self.skipTest('FFmpeg and FFprobe required for integration test')
+        from yt_dlp import YoutubeDL
+        from mutagen.id3 import ID3
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / 'original.wav'
+            subprocess.run([deps['ffmpeg'], '-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=440:duration=1', str(source)], check=True, capture_output=True)
+            opts = worker.options(deps)
+            opts.update({'enable_file_urls': True, 'outtmpl': str(Path(temp) / 'Example Video [abcdefghijk].%(ext)s'),
+                         'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3', 'preferredquality': '192'}]})
+            with YoutubeDL(opts) as ydl:
+                ydl.extract_info(source.as_uri(), download=True)
+            downloaded = Path(temp) / 'Example Video [abcdefghijk].mp3'
+            track = {'title': 'Blinding Lights', 'artist': 'The Weeknd', 'album': 'After Hours',
+                     'track_number': 9, 'cover_url': 'https://example.invalid/cover.jpg'}
+
+            class FakeResponse(io.BytesIO):
+                headers = type('H', (), {'get_content_type': lambda self: 'image/jpeg'})()
+                def __enter__(self): return self
+                def __exit__(self, *args): return False
+
+            with patch('desktop.worker.urllib.request.urlopen', return_value=FakeResponse(b'\xff\xd8\xff\xe0fakejpeg')):
+                result = worker.apply_spotify_metadata(downloaded, track)
+            self.assertEqual(result.name, 'The Weeknd - Blinding Lights.mp3')
+            self.assertFalse(downloaded.exists())
+            self.assertTrue(result.exists())
+            tags = ID3(result)
+            self.assertEqual(str(tags['TIT2']), 'Blinding Lights')
+            self.assertEqual(str(tags['TPE1']), 'The Weeknd')
+            self.assertEqual(str(tags['TALB']), 'After Hours')
+            self.assertEqual(str(tags['TRCK']), '9')
+            covers = tags.getall('APIC')
+            self.assertEqual(len(covers), 1)
+            self.assertEqual(covers[0].mime, 'image/jpeg')
+            self.assertEqual(covers[0].data, b'\xff\xd8\xff\xe0fakejpeg')
+
+    def test_sanitize_filename_part_strips_invalid_characters(self):
+        self.assertEqual(worker.sanitize_filename_part('AC/DC: "Hell" <2>'), 'ACDC Hell 2')
+        self.assertEqual(worker.sanitize_filename_part('   '), 'Sem título')
+
 
 if __name__ == '__main__':
     unittest.main()
