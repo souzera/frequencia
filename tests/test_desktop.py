@@ -163,18 +163,26 @@ class WorkerTests(unittest.TestCase):
 
     def test_spotify_single_and_playlist_metadata(self):
         song = {'name': 'Song', 'artists': [{'name': 'Artist'}], 'duration_ms': 120000,
-                'external_urls': {'spotify': f'https://open.spotify.com/track/{SP}'}}
+                'external_urls': {'spotify': f'https://open.spotify.com/track/{SP}'},
+                'album': {'name': 'Album', 'images': [{'url': 'https://i.scdn.co/image/abc'}]}, 'track_number': 3}
         client = MagicMock()
         client.track.return_value = song
         client.playlist.return_value = {'name': 'My playlist'}
         client.playlist_items.return_value = {'items': [{'track': song}], 'next': 'next-page'}
         client.next.return_value = {'items': [{'track': None}, {'track': {**song, 'is_local': True}}, {'item': song}], 'next': None}
+        tracks_by_kind = {}
         for kind in ('track', 'playlist'):
             with patch('spotdl.utils.spotify.SpotifyClient.init', return_value=client), patch('desktop.worker.emit') as emit:
                 worker.inspect({'url': f'https://open.spotify.com/{kind}/{SP}', 'deps': {}})
-            self.assertEqual(emit.call_args.kwargs['tracks'][0]['query'], 'Song Artist official audio')
-            self.assertEqual(len(emit.call_args.kwargs['tracks']), 1 if kind == 'track' else 2)
-        self.assertEqual(client.track.call_count, 1)
+            tracks_by_kind[kind] = emit.call_args.kwargs['tracks']
+            self.assertEqual(tracks_by_kind[kind][0]['query'], 'Song Artist official audio')
+            self.assertEqual(len(tracks_by_kind[kind]), 1 if kind == 'track' else 2)
+        # Playlist items alone carry no album/cover data; inspect() backfills it
+        # with one extra client.track call per playlist track.
+        self.assertEqual(client.track.call_count, 1 + len(tracks_by_kind['playlist']))
+        for track in tracks_by_kind['playlist']:
+            self.assertEqual(track['cover_url'], 'https://i.scdn.co/image/abc')
+            self.assertEqual(track['album'], 'Album')
 
     def test_failed_track_does_not_abort_batch(self):
         with tempfile.TemporaryDirectory() as temp:

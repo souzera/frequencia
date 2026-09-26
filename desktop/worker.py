@@ -1,4 +1,5 @@
 """Isolated media worker. Emits only prefixed JSON events to the desktop bridge."""
+from concurrent.futures import ThreadPoolExecutor
 import json
 from pathlib import Path
 import sys
@@ -144,6 +145,22 @@ def inspect(request):
                            'cover_url': images[0]['url'] if images else None})
         if link.kind == 'single' and tracks:
             title = tracks[0]['title']
+        elif tracks:
+            # Playlist items never carry album/cover data (the API backend
+            # only fills that in for a single-track lookup), so backfill it
+            # with one extra client.track call per track, done concurrently.
+            def backfill_cover(track):
+                try:
+                    detail = client.track(track['url'])
+                except Exception:
+                    return
+                album = detail.get('album') or {}
+                images = album.get('images') or []
+                track['album'] = album.get('name')
+                track['track_number'] = detail.get('track_number')
+                track['cover_url'] = images[0]['url'] if images else None
+            with ThreadPoolExecutor(max_workers=8) as pool:
+                list(pool.map(backfill_cover, tracks))
     else:
         from yt_dlp import YoutubeDL
         opts = options(request['deps'])
