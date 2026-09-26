@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <!-- pywebview generates its Python bridge with new Function. No remote scripts are loaded. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'">
+  <title>Frequência</title><link rel="icon" href="assets/frequencia.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="#downloads" aria-label="Frequência, início"><img class="brand-icon" src="assets/frequencia.svg" width="32" height="32" alt="">frequência<span class="brand-dot">.</span></a>
+    <div class="nav-label">SUA BIBLIOTECA, OFFLINE</div>
+    <nav aria-label="Navegação principal">
+      <button class="nav active" data-page="downloads"><span>↓</span> Downloads <span class="nav-dot"></span></button>
+      <button class="nav" data-page="settings"><span>⚙</span> Configurações</button>
+    </nav>
+    <div class="sidebar-bottom"><div class="small-mark">♫</div><strong>Do link ao play.</strong><p>Suas músicas em MP3,<br>no seu computador.</p><span class="version">DESKTOP / 1.0</span></div>
+  </aside>
+  <main>
+    <header class="topbar"><span id="breadcrumb">Biblioteca <span>/</span> Downloads</span><span class="local"><i></i> Salvo no seu computador</span></header>
+    <section id="downloads" class="page">
+      <div class="page-heading"><div><div class="eyebrow">UM LINK. SUAS MÚSICAS.</div><h1>O próximo play é seu.</h1><p>Cole uma música ou playlist. A gente cuida do MP3.</p></div><span class="heading-art" aria-hidden="true">↘</span></div>
+      <form id="link-form" class="input-card">
+        <label for="url">De onde vem o som?</label>
+        <div class="input-row"><span class="link-icon" aria-hidden="true">↗</span><input id="url" type="url" required placeholder="Cole um link do YouTube ou Spotify" autocomplete="off" spellcheck="false"><button id="inspect" class="primary" type="submit">Conferir link <span>→</span></button></div>
+        <div class="input-foot"><div class="providers"><span><i class="youtube">▶</i> YouTube</span><span><i class="spotify">≋</i> Spotify</span><span class="muted">Músicas e playlists</span></div><span id="link-type"></span></div>
+        <label id="playlist-choice" class="playlist-choice" hidden><input id="include-playlist" type="checkbox"> Este vídeo faz parte de uma playlist. Carregar a playlist inteira.</label>
+      </form>
+      <div id="notice" role="status" aria-live="polite" hidden></div>
+      <div class="section-title"><h2 id="list-title">Sua seleção</h2><span id="count" class="pill">0 músicas</span><button id="cancel" class="text-button danger" hidden>Cancelar operação</button></div>
+      <div id="empty" class="empty"><div class="empty-icon" aria-hidden="true">♫<span>+</span></div><h3>Seu próximo som começa aqui</h3><p>Adicione um link acima para conferir as músicas<br>e escolher o que quer baixar.</p><div class="steps"><span><b>01</b> Cole o link</span><span>→</span><span><b>02</b> Confira</span><span>→</span><span><b>03</b> Baixe</span></div></div>
+      <div id="loading" class="loading" hidden><span class="spinner"></span><h3>Buscando suas músicas…</h3><p>Playlists maiores podem levar um pouco mais de tempo.</p></div>
+      <div id="selection" hidden>
+        <div class="table-head"><label><input id="select-all" type="checkbox" checked> Selecionar todas</label><span>MP3 <span>·</span> <span id="quality-label">192 kbps</span></span></div>
+        <div id="tracks" class="tracks" aria-label="Músicas encontradas"></div>
+        <div class="download-bar"><div><strong id="selected-count">0 músicas selecionadas</strong><p id="progress-label">Tudo pronto para baixar.</p></div><button id="download" class="primary">↓ Baixar seleção</button></div>
+      </div>
+      <footer class="destination"><span class="folder-icon">▱</span><span>Salvar em <strong id="destination">Downloads</strong></span><button class="text-button" id="open-folder">Abrir pasta ↗</button></footer>
+      <p class="spotify-note">Spotify fornece os nomes e artistas. O áudio é buscado no YouTube e pode ser de uma versão diferente.</p>
+    </section>
+    <section id="settings" class="page" hidden>
+      <div class="page-heading"><div><div class="eyebrow">DO SEU JEITO</div><h1>Configurações</h1><p>Um lugar para ajustar seus próximos downloads.</p></div></div>
+      <form id="settings-form">
+        <div class="settings-card"><h2>Onde salvar</h2><p>Por padrão, suas músicas vão para a pasta Downloads.</p><label for="directory">Pasta de destino</label><div class="settings-row"><input id="directory" readonly><button type="button" id="choose-folder" class="secondary">Escolher pasta</button></div></div>
+        <div class="settings-card"><h2>Qualidade do MP3</h2><p>Uma taxa maior gera arquivos maiores. A qualidade depende do áudio original.</p><label for="quality">Taxa de bits</label><select id="quality"><option value="128">128 kbps · Menor arquivo</option><option value="192">192 kbps · Equilibrado</option><option value="320">320 kbps · Maior arquivo</option></select></div>
+        <div class="settings-card"><h2>Componentes de áudio</h2><p>Incluídos na versão instalada. Nenhuma variável de ambiente necessária.</p><div id="dependencies" class="dependencies"></div></div>
+        <div class="settings-actions"><span id="settings-message" role="status"></span><button class="primary" type="submit">Salvar configurações</button></div>
+      </form>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

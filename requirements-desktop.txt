@@ -1,0 +1,5 @@
+pywebview==6.2.1
+yt-dlp[default]==2026.8.19
+spotdl==4.5.2
+platformdirs>=4.0,<5
+mutagen>=1.47,<2
