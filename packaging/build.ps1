@@ -6,8 +6,10 @@ if ($LASTEXITCODE -ne 0) { throw 'Falha ao empacotar o aplicativo.' }
 $compiler = Get-Command ISCC.exe -ErrorAction SilentlyContinue
 $compilerPath = if ($compiler) { $compiler.Source } else { $null }
 if (-not $compiler) {
-    $candidate = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
-    if (Test-Path -LiteralPath $candidate) { $compilerPath = $candidate }
+    foreach ($base in @(${env:ProgramFiles(x86)}, $env:ProgramFiles, "$env:LocalAppData\Programs")) {
+        $candidate = Join-Path $base 'Inno Setup 6\ISCC.exe'
+        if (Test-Path -LiteralPath $candidate) { $compilerPath = $candidate; break }
+    }
 }
 if ($compilerPath) {
     & $compilerPath packaging/installer.iss
