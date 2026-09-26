@@ -80,6 +80,21 @@ powershell -File packaging/build.ps1
 
 O script gera primeiro o pacote e, quando encontra o compilador Inno Setup, gera `dist/installer/Frequencia-Setup-1.0.0.exe`. Sem o compilador, entrega a pasta executável e informa a pendência. A instalação é por usuário, sem administrador; a desinstalação não apaga músicas ou preferências. O pacote ainda não possui assinatura digital.
 
+A versão do instalador (`AppVersion` e o nome do arquivo) vem de `MyAppVersion`, definido em `packaging/installer.iss` com padrão `1.0.0`. Para gerar outra versão sem editar o arquivo:
+
+```powershell
+ISCC.exe /DMyAppVersion=1.2.3 packaging/installer.iss
+```
+
+### Build automatizado (GitHub Actions)
+
+`.github/workflows/release.yml` builda o instalador em um runner `windows-latest` e publica o resultado como GitHub Release. Ele resolve `vendor/ffmpeg.exe`, `vendor/ffprobe.exe` e `vendor/node.exe` sozinho, baixando-os de fontes oficiais (não são versionados no repositório), então roda o PyInstaller e o Inno Setup como nos passos manuais acima.
+
+Duas formas de disparar:
+
+- **Tag de versão:** `git tag v1.2.3 && git push origin v1.2.3` builda e cria a Release automaticamente, anexando `Frequencia-Setup-1.2.3.exe`.
+- **Manual:** aba **Actions → Release Windows installer → Run workflow** no GitHub, informando a versão; útil para testar o build sem publicar uma Release (o instalador fica disponível como artifact do run).
+
 ## Arquitetura
 
 - `desktop_app.py`: inicialização pywebview e entrada do worker.
