@@ -29,20 +29,20 @@ A pasta padrão é a pasta Downloads reconhecida pelo Windows, inclusive quando 
 
 A classificação é local, com `urllib.parse`, domínio exato, caminho e parâmetros. Não depende de scraping ou de chamadas de rede.
 
-| Serviço | Individual | Playlist |
-|---|---|---|
-| Spotify | `open.spotify.com/track/ID` | `open.spotify.com/playlist/ID` |
-| YouTube | `youtube.com/watch?v=ID`, `youtu.be/ID`, `/shorts/ID`, `/live/ID`, `/embed/ID` | `youtube.com/playlist?list=ID` |
+| Serviço | Individual | Álbum | Playlist |
+|---|---|---|---|
+| Spotify | `open.spotify.com/track/ID` | `open.spotify.com/album/ID` | `open.spotify.com/playlist/ID` |
+| YouTube | `youtube.com/watch?v=ID`, `youtu.be/ID`, `/shorts/ID`, `/live/ID`, `/embed/ID` | — | `youtube.com/playlist?list=ID` |
 
 São aceitos os domínios `www.youtube.com`, `m.youtube.com` e `music.youtube.com`, além dos caminhos localizados do Spotify, como `/intl-pt/track/ID`.
 
-**Vídeo com `v` e `list`:** o padrão é somente o vídeo. Uma opção explícita permite carregar a playlist inteira. Parâmetros de compartilhamento e rastreamento são removidos na normalização. Links HTTP, domínios parecidos, credenciais embutidas, portas alternativas, álbuns e encurtadores `spotify.link` não são aceitos. Para o Spotify, copie o endereço completo do conteúdo.
+**Vídeo com `v` e `list`:** o padrão é somente o vídeo. Uma opção explícita permite carregar a playlist inteira. Parâmetros de compartilhamento e rastreamento são removidos na normalização. Links HTTP, domínios parecidos, credenciais embutidas, portas alternativas e encurtadores `spotify.link` não são aceitos. Para o Spotify, copie o endereço completo do conteúdo.
 
 ## Como funciona o Spotify?
 
-O Spotify fornece **metadados**, não o arquivo de áudio. O adaptador de metadados utiliza spotDL; o áudio é pesquisado e baixado no YouTube com yt-dlp. A busca compara nome, artista e duração entre até cinco candidatos e mostra o título encontrado. Os nomes e artistas do Spotify são gravados nas tags ID3 do MP3.
+O Spotify fornece **metadados**, não o arquivo de áudio. O adaptador de metadados utiliza spotDL; o áudio é pesquisado e baixado no YouTube com yt-dlp. A busca compara nome, artista e duração entre até cinco candidatos e mostra o título encontrado. Os nomes, artistas e a capa do álbum vindos do Spotify são gravados nas tags ID3 do MP3 (título, artista, álbum, número da faixa e capa).
 
-O suporte se destina a faixas e playlists públicas acessíveis pelo adaptador. Playlists privadas, conteúdo removido, limites de requisição e mudanças nos provedores podem impedir a consulta. Esta versão não oferece login Spotify. A correspondência é heurística: versões diferentes ainda podem ser encontradas; use o link direto do YouTube quando precisar de uma gravação específica. Converter para 320 kbps não recupera qualidade ausente na fonte.
+O suporte se destina a faixas, álbuns e playlists públicas acessíveis pelo adaptador. Conteúdo privado, removido, limites de requisição e mudanças nos provedores podem impedir a consulta. Esta versão não oferece login Spotify. A correspondência é heurística: versões diferentes ainda podem ser encontradas; use o link direto do YouTube quando precisar de uma gravação específica. Converter para 320 kbps não recupera qualidade ausente na fonte.
 
 ## Build e instalador
 

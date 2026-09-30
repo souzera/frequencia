@@ -23,10 +23,10 @@ def classify(value: str, playlist: bool = False) -> MediaLink:
         if u.scheme != 'https' or u.username or u.password or u.port not in (None, 443):
             raise ValueError()
         if u.hostname == 'open.spotify.com':
-            m = re.fullmatch(r'/(?:intl-[a-z]{2}(?:-[a-z]{2})?/)?(track|playlist)/([A-Za-z0-9]{22})/?', u.path)
+            m = re.fullmatch(r'/(?:intl-[a-z]{2}(?:-[a-z]{2})?/)?(track|album|playlist)/([A-Za-z0-9]{22})/?', u.path)
             if m:
-                return MediaLink('spotify', 'single' if m[1] == 'track' else 'playlist',
-                                 f'https://open.spotify.com/{m[1]}/{m[2]}')
+                kind = {'track': 'single', 'album': 'album', 'playlist': 'playlist'}[m[1]]
+                return MediaLink('spotify', kind, f'https://open.spotify.com/{m[1]}/{m[2]}')
         if u.hostname in {'youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com', 'youtu.be'}:
             q = parse_qs(u.query)
             pid = q.get('list', [''])[0]
@@ -47,4 +47,4 @@ def classify(value: str, playlist: bool = False) -> MediaLink:
                 return MediaLink('youtube', 'single', f'https://www.youtube.com/watch?v={vid}', pu)
     except ValueError:
         pass
-    raise ValueError('Use um link HTTPS de vídeo, faixa ou playlist do YouTube ou Spotify. Links encurtados do Spotify e álbuns não são aceitos.')
+    raise ValueError('Use um link HTTPS de vídeo, faixa, álbum ou playlist do YouTube ou Spotify. Links encurtados do Spotify não são aceitos.')

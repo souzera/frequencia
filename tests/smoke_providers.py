@@ -11,6 +11,7 @@ from desktop.settings import ROOT, binaries
 URLS = {
     'youtube_playlist': 'https://www.youtube.com/playlist?list=PLt5yu3-wZAlSLRHmI1qNm0wjyVNWw1pCU',
     'spotify_single': 'https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b',
+    'spotify_album': 'https://open.spotify.com/album/4m2880jivSbbyEGAKfITCa',
     'spotify_playlist': 'https://open.spotify.com/playlist/37i9dQZF1E8UXBoz02kGID',
 }
 

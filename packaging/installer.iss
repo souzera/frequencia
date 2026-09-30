@@ -1,7 +1,7 @@
 ; Compile after PyInstaller: ISCC.exe packaging\installer.iss
 ; Override the version without editing this file: ISCC.exe /DMyAppVersion=1.2.3 packaging\installer.iss
 #ifndef MyAppVersion
-  #define MyAppVersion "1.0.0"
+  #define MyAppVersion "1.1.0"
 #endif
 
 [Setup]

@@ -112,6 +112,20 @@ def inspect(request):
         client = SpotifyClient.init(client_id=SPOTIFY_OPTIONS['client_id'], client_secret=SPOTIFY_OPTIONS['client_secret'], no_cache=True)
         if link.kind == 'single':
             songs = [client.track(link.url)]
+        elif link.kind == 'album':
+            meta = client.album(link.url)
+            title = meta.get('name') or 'Álbum do Spotify'
+            cover = {'name': meta.get('name'), 'images': meta.get('images')}
+            songs = []
+            page = client.album_tracks(link.url)
+            while page:
+                songs.extend(item for item in page.get('items', []) if isinstance(item, dict))
+                page = client.next(page) if page.get('next') else None
+            # Album tracks come back without their own album/cover info, but
+            # every track on an album shares the same one, so attach it directly
+            # instead of paying for a client.track call per track like a playlist.
+            for song in songs:
+                song['album'] = cover
         else:
             # Playlist responses already include the needed metadata. Avoid
             # fetching each track, artist and album separately (3N requests).
@@ -145,7 +159,7 @@ def inspect(request):
                            'cover_url': images[0]['url'] if images else None})
         if link.kind == 'single' and tracks:
             title = tracks[0]['title']
-        elif tracks:
+        elif link.kind == 'playlist' and tracks:
             # Playlist items never carry album/cover data (the API backend
             # only fills that in for a single-track lookup), so backfill it
             # with one extra client.track call per track, done concurrently.

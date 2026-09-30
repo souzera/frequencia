@@ -52,7 +52,7 @@ async function refresh() { if (api) { const next = await call('get_state'); if (
 $('url').addEventListener('input', async () => {
   const version = ++classifyVersion; $('playlist-choice').hidden = true; $('include-playlist').checked = false; $('link-type').textContent = ''; if (!api || !$('url').value.trim()) return;
   const link = await api.classify_link($('url').value); if (version !== classifyVersion) return;
-  if (link.ok) { $('link-type').textContent = `${link.source === 'spotify' ? 'Spotify' : 'YouTube'} · ${link.kind === 'playlist' ? 'Playlist' : 'Individual'}`; $('playlist-choice').hidden = !link.playlist_url; }
+  if (link.ok) { const kindLabel = link.kind === 'playlist' ? 'Playlist' : link.kind === 'album' ? 'Álbum' : 'Individual'; $('link-type').textContent = `${link.source === 'spotify' ? 'Spotify' : 'YouTube'} · ${kindLabel}`; $('playlist-choice').hidden = !link.playlist_url; }
 });
 $('link-form').onsubmit = async e => { e.preventDefault(); notice(''); $('inspect').disabled = true; await call('inspect_link', $('url').value, $('include-playlist').checked); const next = await call('get_state'); if (next) render(next); };
 $('select-all').onchange = () => { state.tracks.forEach(t => { if (t.status !== 'done') $('select-all').checked ? selected.add(t.id) : selected.delete(t.id); }); [...$('tracks').children].forEach(row => row.querySelector('input').checked = selected.has(row.dataset.id)); updateSelection(); };

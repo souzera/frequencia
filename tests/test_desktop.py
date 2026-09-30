@@ -21,7 +21,8 @@ class LinkTests(unittest.TestCase):
         for url, source, kind in [(YT, 'youtube', 'single'),
             (f'https://youtube.com/playlist?list={PL}', 'youtube', 'playlist'),
             (f'https://open.spotify.com/intl-pt/track/{SP}?si=xyz', 'spotify', 'single'),
-            (f'https://open.spotify.com/playlist/{SP}', 'spotify', 'playlist')]:
+            (f'https://open.spotify.com/playlist/{SP}', 'spotify', 'playlist'),
+            (f'https://open.spotify.com/album/{SP}', 'spotify', 'album')]:
             with self.subTest(url=url):
                 value = classify(url)
                 self.assertEqual((value.source, value.kind), (source, kind))
@@ -41,7 +42,7 @@ class LinkTests(unittest.TestCase):
         for url in [None, [], 'http://youtu.be/abcdefghijk', 'https://youtube.com.evil.org/watch?v=abcdefghijk',
                     'https://user@youtu.be/abcdefghijk', 'https://youtu.be:8443/abcdefghijk',
                     'https://youtu.be:bad/abcdefghijk', 'file:///tmp/video', 'https://localhost/',
-                    f'https://open.spotify.com/album/{SP}', 'https://spotify.link/abc', YT + 'x']:
+                    'https://spotify.link/abc', YT + 'x']:
             with self.subTest(url=url), self.assertRaises(ValueError):
                 classify(url)
 
@@ -183,6 +184,21 @@ class WorkerTests(unittest.TestCase):
         for track in tracks_by_kind['playlist']:
             self.assertEqual(track['cover_url'], 'https://i.scdn.co/image/abc')
             self.assertEqual(track['album'], 'Album')
+
+    def test_spotify_album_metadata_reuses_shared_cover(self):
+        bare_song = {'name': 'Song', 'artists': [{'name': 'Artist'}], 'duration_ms': 120000,
+                     'external_urls': {'spotify': f'https://open.spotify.com/track/{SP}'}, 'track_number': 3}
+        client = MagicMock()
+        client.album.return_value = {'name': 'Album', 'images': [{'url': 'https://i.scdn.co/image/abc'}]}
+        client.album_tracks.return_value = {'items': [bare_song, None], 'next': None}
+        with patch('spotdl.utils.spotify.SpotifyClient.init', return_value=client), patch('desktop.worker.emit') as emit:
+            worker.inspect({'url': f'https://open.spotify.com/album/{SP}', 'deps': {}})
+        tracks = emit.call_args.kwargs['tracks']
+        self.assertEqual(len(tracks), 1)
+        self.assertEqual(tracks[0]['album'], 'Album')
+        self.assertEqual(tracks[0]['cover_url'], 'https://i.scdn.co/image/abc')
+        self.assertEqual(emit.call_args.kwargs['title'], 'Album')
+        client.track.assert_not_called()
 
     def test_failed_track_does_not_abort_batch(self):
         with tempfile.TemporaryDirectory() as temp:
